@@ -2,12 +2,13 @@
 #include <set>
 
 std::string numChars = "0123456789";
-
 std::string oneCharSymbols = "+-*/%(){}[].<>=!?,.:;";
-
-std::set<std::string> reserved = { "var", "while", "if", "else", "break", "continue", "return", "fn", "typeof", "keys", "empty" };
-
-std::vector<std::string> multiCharSymbols = { "&&=", "||=", "**=", "==", "!=", "<=", ">=", "&&", "||", "**", "+=", "-=", "*=", "/=", "%=" };
+std::set<std::string> reserved = {
+  "var", "while", "if", "else", "break", "continue", "return", "fn", "typeof", "keys", "empty"
+};
+std::vector<std::string> multiCharSymbols = {
+  "&&=", "||=", "**=", "==", "!=", "<=", ">=", "&&", "||", "**", "+=", "-=", "*=", "/=", "%="
+};
 
 void parse(const char *source, std::vector<Token> &tokens) {
   std::uint32_t line = 1, column = 1;
@@ -17,10 +18,52 @@ void parse(const char *source, std::vector<Token> &tokens) {
       column++;
       continue;
     }
-    if (*source == '\n' || (*source == '\r' && source[1] == '\n')) {
+    if (*source == '\n') {
       source++;
       line++;
       column = 1;
+      continue;
+    }
+    if (*source == '\r' && source[1] == '\n') {
+      source += 2;
+      line++;
+      column = 1;
+      continue;
+    }
+    if (*source == '/' && source[1] == '/') {
+      while (*source && *source != '\n') source++;
+      line++;
+      column = 1;
+      continue;
+    }
+    if (*source == '/' && source[1] == '*') {
+      source += 2;
+      column += 2;
+      for (;;) {
+        if (!*source) {
+          std::cout << "unterminated comment\n";
+          exit(1);
+        }
+        if (*source == '*' && source[1] == '/') {
+          source += 2;
+          column += 2;
+          break;
+        }
+        if (*source == '\n') {
+          source++;
+          line++;
+          column = 1;
+          continue;
+        }
+        if (*source == '\r' && source[1] == '\n') {
+          source += 2;
+          line++;
+          column = 1;
+          continue;
+        }
+        source++;
+        column++;
+      }
       continue;
     }
     if ('0' <= *source && *source <= '9') {
