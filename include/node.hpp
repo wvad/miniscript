@@ -1,3 +1,6 @@
+#ifndef __NODE_H__
+#define __NODE_H__
+
 #include <map>
 #include "abnode.hpp"
 
@@ -168,3 +171,5 @@ struct BlockNode : StatememtNode {
   std::vector<StatememtNode*> statements;
   BlockNode(std::vector<StatememtNode*> statements) : statements(statements) {}
 };
+
+#endif /* __NODE_H__ */
