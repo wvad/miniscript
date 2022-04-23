@@ -1,127 +1,8 @@
 #include "main.hpp"
+#include "node.hpp"
 #include <string>
 
-struct Node {};
-
-struct ExpressionNode : Node {};
-
-struct BinaryOperatorNode : ExpressionNode {
-  ExpressionNode *left;
-  ExpressionNode *right;
-  BinaryOperatorNode(ExpressionNode *left, ExpressionNode *right) : left(left), right(right) {}
-};
-
-struct AssignmentNode : BinaryOperatorNode {
-  AssignmentNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct ConditionalNode : ExpressionNode {
-  ExpressionNode *condition;
-  ExpressionNode *trueBranch;
-  ExpressionNode *falseBranch;
-  ConditionalNode(ExpressionNode *condition, ExpressionNode *trueBranch, ExpressionNode *falseBranch)
-      : condition(condition), trueBranch(trueBranch), falseBranch(falseBranch) {}
-};
-
-struct LogicalOrNode : BinaryOperatorNode {
-  LogicalOrNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct LogicalAndNode : BinaryOperatorNode {
-  LogicalAndNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct EqualityNode : BinaryOperatorNode {
-  EqualityNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct InequalityNode : BinaryOperatorNode {
-  InequalityNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct LessThanNode : BinaryOperatorNode {
-  LessThanNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct GreaterThanNode : BinaryOperatorNode {
-  GreaterThanNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct LessThanOrEqualNode : BinaryOperatorNode {
-  LessThanOrEqualNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct GreaterThanOrEqualNode : BinaryOperatorNode {
-  GreaterThanOrEqualNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct AdditionNode : BinaryOperatorNode {
-  AdditionNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct SubtractionNode : BinaryOperatorNode {
-  SubtractionNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct MultiplicationNode : BinaryOperatorNode {
-  MultiplicationNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct DivisionNode : BinaryOperatorNode {
-  DivisionNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct RemainderNode : BinaryOperatorNode {
-  RemainderNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct PowerNode : BinaryOperatorNode {
-  PowerNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct UnaryMinusNode : ExpressionNode {
-  ExpressionNode *operand;
-  UnaryMinusNode(ExpressionNode *operand) : operand(operand) {}
-};
-
-struct LogicalNotNode : ExpressionNode {
-  ExpressionNode *operand;
-  LogicalNotNode(ExpressionNode *operand) : operand(operand) {}
-};
-
-struct TypeofNode : ExpressionNode {
-  ExpressionNode *operand;
-  TypeofNode(ExpressionNode *operand) : operand(operand) {}
-};
-
-struct MemberAccessNode : BinaryOperatorNode {
-  MemberAccessNode(ExpressionNode *left, ExpressionNode *right) : BinaryOperatorNode(left, right) {}
-};
-
-struct FunctionCallNode : ExpressionNode {
-  ExpressionNode *callee;
-  std::vector<ExpressionNode*> args;
-  FunctionCallNode(ExpressionNode *callee, std::vector<ExpressionNode*> args) : callee(callee), args(args) {}
-};
-
-struct IdentifierNode : ExpressionNode {
-  std::string name;
-  IdentifierNode(std::string name) : name(name) {}
-};
-
-struct StringNode : ExpressionNode {
-  std::string value;
-  StringNode(std::string value) : value(value) {}
-};
-
-struct NumberNode : ExpressionNode {
-  double value;
-  NumberNode(double value) : value(value) {}
-};
-
-struct ObjectLiteralNode : ExpressionNode {};
-
-void except(Token &token, std::string expected) {
+void except(Token &token, const char *expected) {
   if (token.value == expected) return;
   std::cerr << "Unexpected token: " << token.value << "\n  at " << token.file << ":" << token.line << ":" << token.column << "\n";
   exit(1);
@@ -133,6 +14,17 @@ ExpressionNode *parseValueExpression(std::vector<Token> &tokens) {
   if (!tokens.size()) {
     std::cerr << "Error: Unexpected end of file\n";
     exit(1);
+  }
+  if (tokens[0].value == "(") {
+    tokens.erase(tokens.begin());
+    ExpressionNode *expr = parseExpression(tokens);
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    except(tokens[0], ")");
+    tokens.erase(tokens.begin());
+    return expr;
   }
   if (tokens[0].kind == TokenKind::NUMBER) {
     NumberNode *node = new NumberNode(std::stod(tokens[0].value));
@@ -149,23 +41,51 @@ ExpressionNode *parseValueExpression(std::vector<Token> &tokens) {
     tokens.erase(tokens.begin());
     return node;
   }
-  // [TODO]: Object Literal
+  if (tokens[0].value == "{") {
+    tokens.erase(tokens.begin());
+    std::map<std::string, ExpressionNode*> members;
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    if (tokens[0].value != "}") for (;;) {
+      if (!tokens.size()) {
+        std::cerr << "Error: Unexpected end of file\n";
+        exit(1);
+      }
+      if (tokens[0].kind != TokenKind::IDENTIFIER && tokens[0].kind != TokenKind::STRING) {
+        std::cerr << "Error: Unexpected token: " << tokens[0].value << "\n  at " << tokens[0].file << ":" << tokens[0].line << ":" << tokens[0].column << "\n";
+        exit(1);
+      }
+      std::string key = tokens[0].value;
+      tokens.erase(tokens.begin());
+      if (!tokens.size()) {
+        std::cerr << "Error: Unexpected end of file\n";
+        exit(1);
+      }
+      except(tokens[0], ":");
+      tokens.erase(tokens.begin());
+      members[key] = parseExpression(tokens);
+      if (!tokens.size()) {
+        std::cerr << "Error: Unexpected end of file\n";
+        exit(1);
+      }
+      if (tokens[0].value == ",") {
+        tokens.erase(tokens.begin());
+        continue;
+      }
+      if (tokens[0].value == "}") break;
+      std::cerr << "Error: Unexpected token: " << tokens[0].value << "\n  at " << tokens[0].file << ":" << tokens[0].line << ":" << tokens[0].column << "\n";
+      exit(1);
+    }
+    tokens.erase(tokens.begin());
+    return new ObjectLiteralNode(members);
+  }
   std::cerr << "Unexpected token: " << tokens[0].value << "\n  at " << tokens[0].file << ":" << tokens[0].line << ":" << tokens[0].column << "\n";
   exit(1);
 }
 
 ExpressionNode *parsePrimaryExpression(std::vector<Token> &tokens) {
-  if (tokens.size() && tokens[0].value == "(") {
-    tokens.erase(tokens.begin());
-    ExpressionNode *expr = parseExpression(tokens);
-    if (!tokens.size()) {
-      std::cerr << "Error: Unexpected end of file\n";
-      exit(1);
-    }
-    except(tokens[0], ")");
-    tokens.erase(tokens.begin());
-    return expr;
-  }
   ExpressionNode *node = parseValueExpression(tokens);
   for (;;) {
     if (!tokens.size()) return node;
@@ -193,21 +113,53 @@ ExpressionNode *parsePrimaryExpression(std::vector<Token> &tokens) {
       tokens.erase(tokens.begin());
     } else if (val == "(") {
       tokens.erase(tokens.begin());
-      node = new MemberAccessNode(node, parseExpression(tokens));
       if (!tokens.size()) {
         std::cerr << "Error: Unexpected end of file\n";
         exit(1);
       }
-      except(tokens[0], ")");
+      std::vector<ExpressionNode*> args;
+      if (!tokens.size()) {
+        std::cerr << "Error: Unexpected end of file\n";
+        exit(1);
+      }
+      if (tokens[0].value != ")") for (;;) {
+        args.push_back(parseExpression(tokens));
+        if (!tokens.size()) {
+          std::cerr << "Error: Unexpected end of file\n";
+          exit(1);
+        }
+        if (tokens[0].value == ",") {
+          tokens.erase(tokens.begin());
+          continue;
+        }
+        if (tokens[0].value == ")") break;
+        std::cerr << "Error: Unexpected token: " << tokens[0].value << "\n  at " << tokens[0].file << ":" << tokens[0].line << ":" << tokens[0].column << "\n";
+        exit(1);
+      }
       tokens.erase(tokens.begin());
+      node = new FunctionCallNode(node, args);
     } else {
       return node;
     }
   }
 }
 
+ExpressionNode *parseUnaryExpression(std::vector<Token> &tokens) {
+  if (tokens.size()) {
+    if (tokens[0].value == "!") {
+      tokens.erase(tokens.begin());
+      return new LogicalNotNode(parsePrimaryExpression(tokens));
+    }
+    if (tokens[0].value == "typeof") {
+      tokens.erase(tokens.begin());
+      return new TypeofNode(parsePrimaryExpression(tokens));
+    }
+  }
+  return parsePrimaryExpression(tokens);
+}
+
 ExpressionNode *parsePowExpression(std::vector<Token> &tokens) {
-  ExpressionNode *left = parsePrimaryExpression(tokens);
+  ExpressionNode *left = parseUnaryExpression(tokens);
   if (tokens.size() && tokens[0].value == "**") {
     tokens.erase(tokens.begin());
     return new PowerNode(left, parsePowExpression(tokens));
@@ -215,38 +167,28 @@ ExpressionNode *parsePowExpression(std::vector<Token> &tokens) {
   return left;
 }
 
-ExpressionNode *parseUnaryExpression(std::vector<Token> &tokens) {
-  ExpressionNode *left = parsePowExpression(tokens);
-  if (!tokens.size()) return left;
-  if (tokens[0].value == "-") {
+ExpressionNode *parseUnaryMinusExpression(std::vector<Token> &tokens) {
+  if (tokens.size() && tokens[0].value == "-") {
     tokens.erase(tokens.begin());
-    return new UnaryMinusNode(parseUnaryExpression(tokens));
+    return new UnaryMinusNode(parsePowExpression(tokens));
   }
-  if (tokens[0].value == "!") {
-    tokens.erase(tokens.begin());
-    return new LogicalNotNode(parseUnaryExpression(tokens));
-  }
-  if (tokens[0].value == "typeof") {
-    tokens.erase(tokens.begin());
-    return new TypeofNode(parseUnaryExpression(tokens));
-  }
-  return left;
+  return parsePowExpression(tokens);
 }
 
 ExpressionNode *parseMulDivExpression(std::vector<Token> &tokens) {
-  ExpressionNode *node = parseUnaryExpression(tokens);
+  ExpressionNode *node = parseUnaryMinusExpression(tokens);
   for (;;) {
     if (!tokens.size()) return node;
     std::string &val = tokens[0].value;
     if (val == "*") {
       tokens.erase(tokens.begin());
-      node = new MultiplicationNode(node, parseUnaryExpression(tokens));
+      node = new MultiplicationNode(node, parseUnaryMinusExpression(tokens));
     } else if (val == "/") {
       tokens.erase(tokens.begin());
-      node = new DivisionNode(node, parseUnaryExpression(tokens));
+      node = new DivisionNode(node, parseUnaryMinusExpression(tokens));
     } else if (val == "%") {
       tokens.erase(tokens.begin());
-      node = new RemainderNode(node, parseUnaryExpression(tokens));
+      node = new RemainderNode(node, parseUnaryMinusExpression(tokens));
     } else {
       return node;
     }
@@ -340,6 +282,7 @@ ExpressionNode *parseConditionalExpression(std::vector<Token> &tokens){
       exit(1);
     }
     except(tokens[0], ":");
+    tokens.erase(tokens.begin());
     return new ConditionalNode(left, middle, parseConditionalExpression(tokens));
   }
   return left;
@@ -387,44 +330,160 @@ ExpressionNode *parseExpression(std::vector<Token> &tokens) {
   return parseAssignmentExpression(tokens);
 }
 
-Node *parseStatement(std::vector<Token> &tokens) {
+StatememtNode *parseStatement(std::vector<Token> &tokens) {
   if (tokens[0].value == "var") {
-    // ...
+    tokens.erase(tokens.begin());
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    if (tokens[0].kind != TokenKind::IDENTIFIER) {
+      std::cerr << "Error: Expected identifier\n";
+      exit(1);
+    }
+    std::string name = tokens[0].value;
+    tokens.erase(tokens.begin());
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    except(tokens[0], "=");
+    tokens.erase(tokens.begin());
+    auto node = new VariableDeclarationNode(name, parseExpression(tokens));
+    except(tokens[0], ";");
+    tokens.erase(tokens.begin());
+    return node;
   }
   if (tokens[0].value == "while") {
-    Node *condition = parseExpression(tokens);
+    tokens.erase(tokens.begin());
+    ExpressionNode *condition = parseExpression(tokens);
     if (!tokens.size()) {
       std::cerr << "Error: Unexpected end of file\n";
       exit(1);
     }
     except(tokens[0], ":");
     tokens.erase(tokens.begin());
-    Node *body = parseStatement(tokens);
+    StatememtNode *body = parseStatement(tokens);
+    return new WhileNode(condition, body);
   }
   if (tokens[0].value == "if") {
-    // ...
-  }
-  if (tokens[0].value == "break") {
+    tokens.erase(tokens.begin());
+    ExpressionNode *condition = parseExpression(tokens);
     if (!tokens.size()) {
       std::cerr << "Error: Unexpected end of file\n";
       exit(1);
     }
-    except(tokens[1], ";");
+    except(tokens[0], ":");
+    tokens.erase(tokens.begin());
+    StatememtNode *body = parseStatement(tokens);
+    if (!tokens.size() || tokens[0].value != "else") return new IfNode(condition, body);
+    tokens.erase(tokens.begin());
+    StatememtNode *elseBody = parseStatement(tokens);
+    return new IfNode(condition, body, elseBody);
   }
-  if (tokens[0].value == "continue") {
-    if (!tokens.size() < 1) {
+  if (tokens[0].value == "break") {
+    tokens.erase(tokens.begin());
+    if (!tokens.size()) {
       std::cerr << "Error: Unexpected end of file\n";
       exit(1);
     }
-    except(tokens[1], ";");
+    except(tokens[0], ";");
+    tokens.erase(tokens.begin());
+    return new BreakNode();
+  }
+  if (tokens[0].value == "continue") {
+    tokens.erase(tokens.begin());
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    except(tokens[0], ";");
+    tokens.erase(tokens.begin());
+    return new ContinueNode();
   }
   if (tokens[0].value == "return") {
-    // ...
+    tokens.erase(tokens.begin());
+    ExpressionNode *value = parseExpression(tokens);
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    except(tokens[0], ";");
+    tokens.erase(tokens.begin());
+    return new ReturnNode(value);
   }
   if (tokens[0].value == "fn") {
-    // ...
+    tokens.erase(tokens.begin());
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    if (tokens[0].kind != TokenKind::IDENTIFIER) {
+      std::cerr << "Error: Expected identifier\n";
+      exit(1);
+    }
+    std::string name = tokens[0].value;
+    tokens.erase(tokens.begin());
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    except(tokens[0], "(");
+    tokens.erase(tokens.begin());
+    std::vector<std::string> parameters;
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    if (tokens[0].value != ")") for (;;) {
+      if (!tokens.size()) {
+        std::cerr << "Error: Unexpected end of file\n";
+        exit(1);
+      }
+      if (tokens[0].kind != TokenKind::IDENTIFIER) {
+        std::cerr << "Error: Expected identifier\n";
+        exit(1);
+      }
+      parameters.push_back(tokens[0].value);
+      tokens.erase(tokens.begin());
+      if (!tokens.size()) {
+        std::cerr << "Error: Unexpected end of file\n";
+        exit(1);
+      }
+      if (tokens[0].value == ",") {
+        tokens.erase(tokens.begin());
+        continue;
+      }
+      if (tokens[0].value == ")") break;
+      std::cerr << "Error: Unexpected token: " << tokens[0].value << "\n  at " << tokens[0].file << ":" << tokens[0].line << ":" << tokens[0].column << "\n";
+      exit(1);
+    }
+    tokens.erase(tokens.begin());
+    return new FunctionDeclarationNode(name, parameters, parseStatement(tokens));
   }
-  parseExpression(tokens);
+  if (tokens[0].value == "{") {
+    tokens.erase(tokens.begin());
+    std::vector<StatememtNode*> statements;
+    if (!tokens.size()) {
+      std::cerr << "Error: Unexpected end of file\n";
+      exit(1);
+    }
+    while (tokens[0].value != "}") {
+      statements.push_back(parseStatement(tokens));
+      if (!tokens.size()) {
+        std::cerr << "Error: Unexpected end of file\n";
+        exit(1);
+      }
+    }
+    tokens.erase(tokens.begin());
+    return new BlockNode(statements);
+  }
+  ExpressionNode* expr = parseExpression(tokens);
+  if (!tokens.size()) {
+    std::cerr << "Error: Unexpected end of file\n";
+    exit(1);
+  }
+  except(tokens[0], ";");
+  tokens.erase(tokens.begin());
+  return new ExpressionStatementNode(expr);
 }
-
-
