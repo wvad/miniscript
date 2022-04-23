@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include "abnode.hpp"
 
 std::vector<std::string> kinds = {
   "RESERVED",
@@ -7,8 +8,6 @@ std::vector<std::string> kinds = {
   "IDENTIFIER",
   "SYMBOL"
 };
-
-void parseStatement(std::vector<Token> &tokens);
 
 int main() {
   std::vector<Token> tokens;

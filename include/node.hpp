@@ -1,7 +1,5 @@
 #include <map>
-
-struct ExpressionNode {};
-struct StatememtNode {};
+#include "abnode.hpp"
 
 struct BinaryOperatorNode : ExpressionNode {
   ExpressionNode *left;
