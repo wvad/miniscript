@@ -68,9 +68,8 @@ void parse(const char *source, std::vector<Token> &tokens) {
     }
     if ('0' <= *source && *source <= '9') {
       std::uint32_t len = 1;
-      bool includesPoint = *source == '.',
-           includesExp = false;
-      for (;;) {
+      bool includesPoint = *source == '.', includesExp = false;
+      while (source[len]) {
         if ('0' <= source[len] && source[len] <= '9') {
           len++;
           continue;
@@ -94,14 +93,44 @@ void parse(const char *source, std::vector<Token> &tokens) {
     }
     if (*source == '"') {
       std::uint32_t len = 1;
+      std::vector<char> chars;
       while (source[len] != '"') {
+        if (!source[len] || source[len] == '\n') {
+          std::cout << "Unterminated string\n  at " << line << ":" << column << "\n";
+          exit(1);
+        }
         if (source[len] != '\\') {
+          chars.push_back(source[len]);
           len++;
           continue;
         }
-        // [TODO]: escaped characters
+        len++;
+        switch (source[len]) {
+          case 'n':
+            chars.push_back('\n');
+            break;
+          case 'r':
+            chars.push_back('\r');
+            break;
+          case 'b':
+            chars.push_back('\b');
+            break;
+          case 't':
+            chars.push_back('\t');
+            break;
+          case '\\':
+            chars.push_back('\\');
+            break;
+          case '"':
+            chars.push_back('"');
+            break;
+          default:
+            std::cout << "Invalid escape sequence\n  at " << line << ":" << column << "\n";
+            exit(1);
+        }
+        len++;
       }
-      tokens.push_back(Token(std::string(source + 1, len - 1), line, column, TokenKind::STRING));
+      tokens.push_back(Token(std::string(chars.begin(), chars.end()), line, column, TokenKind::STRING));
       len++;
       column += len;
       source += len;
@@ -109,7 +138,7 @@ void parse(const char *source, std::vector<Token> &tokens) {
     }
     if (('A' <= *source && *source <= 'Z') || *source == '_' || ('a' <= *source && *source <= 'z')) {
       std::uint32_t len = 1;
-      for (;;) {
+      while (source[len]) {
         if (('A' <= source[len] && source[len] <= 'Z') || ('0' <= source[len] && source[len] <= '9') || source[len] == '_' || ('a' <= source[len] && source[len] <= 'z')) {
           len++;
           continue;
@@ -137,7 +166,7 @@ void parse(const char *source, std::vector<Token> &tokens) {
       source++;
       continue;
     }
-    std::cerr << "Unexpected character at " << line << ":" << column << "\n";
+    std::cerr << "Unexpected character\n  at " << line << ":" << column << "\n";
     exit(1);
     continue_label:;
   }
