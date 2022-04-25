@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include "abnode.hpp"
 
 std::vector<std::string> kinds = {
   "RESERVED",
@@ -8,11 +9,9 @@ std::vector<std::string> kinds = {
   "SYMBOL"
 };
 
-void parseStatement(std::vector<Token> &tokens);
-
 int main() {
   std::vector<Token> tokens;
-  parse("var a = { a: 0, b: 7 };", tokens);
+  parse("var a = { a: 0, b: 7 };", tokens, "unknown.ms");
   for (auto &token : tokens)
     std::cout << token.value << " (" << token.line << ":" << token.column << ") " << kinds[static_cast<int>(token.kind)] << "\n";
   while (tokens.size()) parseStatement(tokens);

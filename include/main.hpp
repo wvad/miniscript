@@ -1,3 +1,6 @@
+#ifndef __MAIN_H__
+#define __MAIN_H__
+
 #include <iostream>
 #include <vector>
 
@@ -14,9 +17,11 @@ struct Token {
   std::uint32_t line;
   std::uint32_t column;
   TokenKind kind;
-  std::string file = "unknown.ms";
-  Token(std::string value, std::uint32_t line, std::uint32_t column, TokenKind kind)
-      : value(std::move(value)), line(line), column(column), kind(kind) {}
+  std::string file;
+  Token(std::string value, std::uint32_t line, std::uint32_t column, TokenKind kind, std::string file)
+    : value(value), line(line), column(column), kind(kind), file(file) {}
 };
 
-void parse(const char *source, std::vector<Token> &tokens);
+void parse(const char *source, std::vector<Token> &tokens, const char *filename);
+
+#endif /* __MAIN_H__ */

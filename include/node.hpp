@@ -1,7 +1,8 @@
-#include <map>
+#ifndef __NODE_H__
+#define __NODE_H__
 
-struct ExpressionNode {};
-struct StatememtNode {};
+#include <map>
+#include "abnode.hpp"
 
 struct BinaryOperatorNode : ExpressionNode {
   ExpressionNode *left;
@@ -170,3 +171,5 @@ struct BlockNode : StatememtNode {
   std::vector<StatememtNode*> statements;
   BlockNode(std::vector<StatememtNode*> statements) : statements(statements) {}
 };
+
+#endif /* __NODE_H__ */

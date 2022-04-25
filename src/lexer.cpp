@@ -10,7 +10,7 @@ std::vector<std::string> multiCharSymbols = {
   "&&=", "||=", "**=", "==", "!=", "<=", ">=", "&&", "||", "**", "+=", "-=", "*=", "/=", "%="
 };
 
-void parse(const char *source, std::vector<Token> &tokens) {
+void parse(const char *source, std::vector<Token> &tokens, const char *filename) {
   std::uint32_t line = 1, column = 1;
   while (*source) {
     if (*source == ' ' || *source == '\t') {
@@ -86,7 +86,7 @@ void parse(const char *source, std::vector<Token> &tokens) {
         }
         break;
       }
-      tokens.push_back(Token(std::string(source, len), line, column, TokenKind::NUMBER));
+      tokens.push_back(Token(std::string(source, len), line, column, TokenKind::NUMBER, filename));
       column += len;
       source += len;
       continue;
@@ -96,7 +96,7 @@ void parse(const char *source, std::vector<Token> &tokens) {
       std::vector<char> chars;
       while (source[len] != '"') {
         if (!source[len] || source[len] == '\n') {
-          std::cout << "Unterminated string\n  at " << line << ":" << column << "\n";
+          std::cout << "Unterminated string\n  at " << filename << ":" << line << ":" << column << "\n";
           exit(1);
         }
         if (source[len] != '\\') {
@@ -125,12 +125,12 @@ void parse(const char *source, std::vector<Token> &tokens) {
             chars.push_back('"');
             break;
           default:
-            std::cout << "Invalid escape sequence\n  at " << line << ":" << column << "\n";
+            std::cout << "Invalid escape sequence\n  at " << filename << ":" << line << ":" << column << "\n";
             exit(1);
         }
         len++;
       }
-      tokens.push_back(Token(std::string(chars.begin(), chars.end()), line, column, TokenKind::STRING));
+      tokens.push_back(Token(std::string(chars.begin(), chars.end()), line, column, TokenKind::STRING, filename));
       len++;
       column += len;
       source += len;
@@ -146,7 +146,7 @@ void parse(const char *source, std::vector<Token> &tokens) {
         break;
       }
       std::string value(source, len);
-      tokens.push_back(Token(value, line, column, reserved.find(value) != reserved.end() ? TokenKind::RESERVED : TokenKind::IDENTIFIER));
+      tokens.push_back(Token(value, line, column, reserved.find(value) != reserved.end() ? TokenKind::RESERVED : TokenKind::IDENTIFIER, filename));
       column += len;
       source += len;
       continue;
@@ -154,19 +154,19 @@ void parse(const char *source, std::vector<Token> &tokens) {
     for (auto &symbol : multiCharSymbols) {
       size_t len = symbol.size();
       if (std::string(source, len) == symbol) {
-        tokens.push_back(Token(symbol, line, column, TokenKind::SYMBOL));
+        tokens.push_back(Token(symbol, line, column, TokenKind::SYMBOL, filename));
         column += len;
         source += len;
         goto continue_label;
       }
     }
     if (oneCharSymbols.find(*source) != std::string::npos) {
-      tokens.push_back(Token(std::string(source, 1), line, column, TokenKind::SYMBOL));
+      tokens.push_back(Token(std::string(source, 1), line, column, TokenKind::SYMBOL, filename));
       column++;
       source++;
       continue;
     }
-    std::cerr << "Unexpected character\n  at " << line << ":" << column << "\n";
+    std::cerr << "Unexpected character\n  at " << filename << ":" << line << ":" << column << "\n";
     exit(1);
     continue_label:;
   }
