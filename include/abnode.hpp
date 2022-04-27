@@ -3,9 +3,12 @@
 
 struct ExpressionNode {
   virtual Value eval() = 0;
+  virtual ~ExpressionNode() {}
 };
+
 struct StatememtNode {
   virtual void eval() = 0;
+  virtual ~StatementNode {}
 };
 
 StatememtNode *parseStatement(std::vector<Token> &tokens);
