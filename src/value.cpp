@@ -2,12 +2,6 @@
 #include <vector>
 #include <map>
 
-
-struct Context {
-  std::vector<std::map<std::string, Value*>> scopes;
-  std::map<std::string, Function*> funcs;
-};
-
 struct Value {
   virtual ~Value() {}
 };
@@ -28,6 +22,11 @@ struct Dictionary : Value {
 struct Function : Value {
   ExpressionNode *node;
   Function(StatementNode *node) : node(node);
+};
+
+struct Context {
+  std::vector<std::map<std::string, Value*>> scopes;
+  std::map<std::string, Function*> funcs;
 };
 
 struct Empty : Value {};
