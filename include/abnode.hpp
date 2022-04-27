@@ -1,7 +1,7 @@
 #ifndef __ABNODE_H__
 #define __ABNODE_H__
 
-#include "main.hpp"
+#include "token.hpp"
 
 
 struct Value;

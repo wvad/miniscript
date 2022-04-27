@@ -1,4 +1,4 @@
-#include "main.hpp"
+#include "token.hpp"
 #include <set>
 
 std::string numChars = "0123456789";
