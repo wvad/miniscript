@@ -1,3 +1,8 @@
+#include <iostream>
+#include <vector>
+#include <map>
+
+
 struct Context {
   std::vector<std::map<std::string, Value*>> scopes;
   std::map<std::string, Function*> funcs;
