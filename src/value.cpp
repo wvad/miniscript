@@ -1,12 +1,29 @@
-struct Value {};
+struct Context {
+  std::vector<std::map<std::string, Value*>> scopes;
+  std::map<std::string, Function*> funcs;
+};
 
-struct Number : Value{};
+struct Value {
+  virtual ~Value() {}
+};
 
-struct String : Value {};
+struct Number : Value{
+  double val;
+};
 
-struct Dictionary : Value {};
+struct String : Value {
+  std::string val;
+  String(std::string val) : val(val);
+};
 
-struct Function : Value {};
+struct Dictionary : Value {
+  std::map<std::string, Value*> val;
+};
+
+struct Function : Value {
+  ExpressionNode *node;
+  Function(StatementNode *node) : node(node);
+};
 
 struct Empty : Value {};
 
