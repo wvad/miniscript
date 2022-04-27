@@ -123,53 +123,53 @@ struct ObjectLiteralNode : ExpressionNode {
   ObjectLiteralNode(std::map<std::string, ExpressionNode*> members) : members(members) {}
 };
 
-struct WhileNode : StatememtNode {
+struct WhileNode : StatementNode {
   ExpressionNode *condition;
-  StatememtNode* body;
-  WhileNode(ExpressionNode *condition, StatememtNode* body) : condition(condition), body(body) {}
+  StatementNode* body;
+  WhileNode(ExpressionNode *condition, StatementNode* body) : condition(condition), body(body) {}
 };
 
-struct IfNode : StatememtNode {
+struct IfNode : StatementNode {
   ExpressionNode *condition;
-  StatememtNode* trueBranch;
-  StatememtNode* falseBranch;
-  IfNode(ExpressionNode *condition, StatememtNode* trueBranch)
+  StatementNode* trueBranch;
+  StatementNode* falseBranch;
+  IfNode(ExpressionNode *condition, StatementNode* trueBranch)
       : condition(condition), trueBranch(trueBranch), falseBranch(nullptr) {}
-  IfNode(ExpressionNode *condition, StatememtNode* trueBranch, StatememtNode* falseBranch)
+  IfNode(ExpressionNode *condition, StatementNode* trueBranch, StatementNode* falseBranch)
       : condition(condition), trueBranch(trueBranch), falseBranch(falseBranch) {}
 };
 
-struct BreakNode : StatememtNode {};
+struct BreakNode : StatementNode {};
 
-struct ContinueNode : StatememtNode {};
+struct ContinueNode : StatementNode {};
 
-struct ReturnNode : StatememtNode {
+struct ReturnNode : StatementNode {
   ExpressionNode *value;
   ReturnNode(ExpressionNode *value) : value(value) {}
 };
 
-struct VariableDeclarationNode : StatememtNode {
+struct VariableDeclarationNode : StatementNode {
   std::string name;
   ExpressionNode *value;
   VariableDeclarationNode(std::string name, ExpressionNode *value) : name(name), value(value) {}
 };
 
-struct FunctionDeclarationNode : StatememtNode {
+struct FunctionDeclarationNode : StatementNode {
   std::string name;
   std::vector<std::string> args;
-  StatememtNode* body;
-  FunctionDeclarationNode(std::string name, std::vector<std::string> args, StatememtNode* body)
+  StatementNode* body;
+  FunctionDeclarationNode(std::string name, std::vector<std::string> args, StatementNode* body)
       : name(name), args(args), body(body) {}
 };
 
-struct ExpressionStatementNode : StatememtNode {
+struct ExpressionStatementNode : StatementNode {
   ExpressionNode *expression;
   ExpressionStatementNode(ExpressionNode *expression) : expression(expression) {}
 };
 
-struct BlockNode : StatememtNode {
-  std::vector<StatememtNode*> statements;
-  BlockNode(std::vector<StatememtNode*> statements) : statements(statements) {}
+struct BlockNode : StatementNode {
+  std::vector<StatementNode*> statements;
+  BlockNode(std::vector<StatementNode*> statements) : statements(statements) {}
 };
 
 #endif /* __NODE_H__ */

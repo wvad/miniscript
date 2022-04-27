@@ -330,7 +330,7 @@ ExpressionNode *parseExpression(std::vector<Token> &tokens) {
   return parseAssignmentExpression(tokens);
 }
 
-StatememtNode *parseStatement(std::vector<Token> &tokens) {
+StatementNode *parseStatement(std::vector<Token> &tokens) {
   if (tokens[0].value == "var") {
     tokens.erase(tokens.begin());
     if (!tokens.size()) {
@@ -363,7 +363,7 @@ StatememtNode *parseStatement(std::vector<Token> &tokens) {
     }
     except(tokens[0], ":");
     tokens.erase(tokens.begin());
-    StatememtNode *body = parseStatement(tokens);
+    StatementNode *body = parseStatement(tokens);
     return new WhileNode(condition, body);
   }
   if (tokens[0].value == "if") {
@@ -375,10 +375,10 @@ StatememtNode *parseStatement(std::vector<Token> &tokens) {
     }
     except(tokens[0], ":");
     tokens.erase(tokens.begin());
-    StatememtNode *body = parseStatement(tokens);
+    StatementNode *body = parseStatement(tokens);
     if (!tokens.size() || tokens[0].value != "else") return new IfNode(condition, body);
     tokens.erase(tokens.begin());
-    StatememtNode *elseBody = parseStatement(tokens);
+    StatementNode *elseBody = parseStatement(tokens);
     return new IfNode(condition, body, elseBody);
   }
   if (tokens[0].value == "break") {
@@ -463,7 +463,7 @@ StatememtNode *parseStatement(std::vector<Token> &tokens) {
   }
   if (tokens[0].value == "{") {
     tokens.erase(tokens.begin());
-    std::vector<StatememtNode*> statements;
+    std::vector<StatementNode*> statements;
     if (!tokens.size()) {
       std::cerr << "Error: Unexpected end of file\n";
       exit(1);

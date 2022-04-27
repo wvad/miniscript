@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include "abnode.hpp"
+
 
 struct Value {
   virtual ~Value() {}
@@ -12,7 +14,7 @@ struct Number : Value{
 
 struct String : Value {
   std::string val;
-  String(std::string val) : val(val);
+  String(std::string val) : val(val) {};
 };
 
 struct Dictionary : Value {
@@ -20,8 +22,8 @@ struct Dictionary : Value {
 };
 
 struct Function : Value {
-  ExpressionNode *node;
-  Function(StatementNode *node) : node(node);
+  StatementNode *node;
+  Function(StatementNode *node) : node(node) {};
 };
 
 struct Context {
