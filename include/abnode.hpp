@@ -1,18 +1,18 @@
 #ifndef __ABNODE_H__
 #define __ABNODE_H__
 
-#include "token.hpp"
+#include "valptr.hpp"
 
-
-struct Value;
+struct Context;
+struct Token;
 
 struct ExpressionNode {
-  virtual Value *eval() = 0;
+  virtual ValuePointer eval(Context&) = 0;
   virtual ~ExpressionNode() {}
 };
 
 struct StatementNode {
-  virtual void eval() = 0;
+  virtual void eval(Context&) = 0;
   virtual ~StatementNode() {}
 };
 
