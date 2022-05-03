@@ -1,5 +1,5 @@
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __TOKEN_H__
+#define __TOKEN_H__
 
 #include <iostream>
 #include <vector>
@@ -24,4 +24,4 @@ struct Token {
 
 void parse(const char *source, std::vector<Token> &tokens, const char *filename);
 
-#endif /* __MAIN_H__ */
+#endif /* __TOKEN_H__ */
